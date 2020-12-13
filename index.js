@@ -22,7 +22,9 @@ chrome.runtime.onMessage.addListener(
           </p>
           <div class="resp-${x.requestId}"></div>
           <br /><br /><br />
-          <mark>debug console</mark>
+          <mark>debug console</mark><br /><br />
+          <div class="debug-${x.requestId}"></div>
+          Raw data<br />
           <pre>${JSON.stringify(x, null, 2)}</pre>
         </div>`
       }, '')
@@ -44,6 +46,7 @@ chrome.runtime.onMessage.addListener(
             // ignore
           }
           document.querySelector(`.resp-${data.requestId}`).innerHTML = `Response Header: ${resp.status}<br /><pre>${JSON.stringify(resp.headers, null, 2)}</pre><br />Response body<br /><pre>${responseBody}</pre>`
+          document.querySelector(`.debug-${data.requestId}`).innerHTML = `Request Log<br /><pre>${JSON.stringify(resp, null, 2)}</pre><br />`
         }).catch(err => {
           const response = err.response
           if (response) {
@@ -57,6 +60,7 @@ chrome.runtime.onMessage.addListener(
           } else {
             document.querySelector(`.resp-${data.requestId}`).innerHTML = `Error Log<br /><pre>${err}</pre>`
           }
+          document.querySelector(`.debug-${data.requestId}`).innerHTML = `Request Log<br /><pre>${JSON.stringify(err, null, 2)}</pre><br />`
         })
       })
     }

@@ -6,10 +6,6 @@ chrome.browserAction.onClicked.addListener(tab => {
 	})
 })
 
-// chrome.tabs.onCreated.addListener(() => {
-//   data = []
-// })
-
 chrome.tabs.onRemoved.addListener(id => {
   data = data.filter(d => d.tabId !== id)
   console.log('Data Length:', data.length)
