@@ -8,7 +8,7 @@
     "48": "icon.png",
     "128": "icon.png"
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://stackpath.bootstrapcdn.com; object-src 'self'",
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; object-src 'self'",
   "browser_action": {
   },
   "web_accessible_resources": ["index.html"],
