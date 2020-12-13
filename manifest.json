@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "RestFire Extension",
+  "description": "cURL network inspector",
+  "version": "0.1.0",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://stackpath.bootstrapcdn.com; object-src 'self'",
+  "browser_action": {
+  },
+  "web_accessible_resources": ["index.html"],
+  "background": {
+    "scripts":["bg.js"],
+    "persistent": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["frame.js"]
+    }
+  ],
+  "permissions": [
+    "<all_urls>",
+    "webRequest",
+    "tabs",
+    "webRequestBlocking"
+  ]
+}

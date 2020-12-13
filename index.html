@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+  <style>
+    body {
+      background-color: #1a1a2e;
+      min-height: 100vh;
+      border-left: #e94560 solid 5px;
+    }
+    .row {
+      padding-top: 50px;
+    }
+    .close {
+      z-index: 1211;
+      position: absolute;
+      right: 20px;
+      top: 10px;
+    }
+    .close::before {
+      display: block;
+      content: '\00D7';
+      color: #ffffff;
+      position: relative;
+      font-family: sans-serif;
+      font-size: 1.75rem;
+      line-height: 1;
+      text-align: center;
+    }
+    .close:hover {
+      cursor: pointer;
+    }
+    mark.post {
+      background: #49aa19 !important;
+    }
+    mark.patch {
+      background: #d87a16 !important;
+    }
+    mark.delete {
+      background: #d32029 !important;
+    }
+    mark.put {
+      background: #13a8a8 !important;
+    }
+    mark.options {
+      background: #8bbb11 !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <span class="close"></span>
+      <button class="reload small primary">reload</button>
+      <div class="collapse"></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>
