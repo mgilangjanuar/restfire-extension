@@ -18,14 +18,22 @@ chrome.runtime.onMessage.addListener(
           cURL<br />
           <pre>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</pre>
           <p style="text-align: right;">
-            <button class="tertiary sendRequest" --data-id="${x.requestId}">Send</button>
+            <button class="tertiary sendRequest small" --data-id="${x.requestId}">Send</button>
           </p>
           <div class="resp-${x.requestId}"></div>
-          <br /><br /><br />
-          <mark>debug console</mark><br /><br />
-          <div class="debug-${x.requestId}"></div>
-          Raw data<br />
-          <pre>${JSON.stringify(x, null, 2)}</pre>
+          <br />
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="card fluid">
+                <div class="section dark">
+                  <mark>debug console</mark><br /><br />
+                  <div class="debug-${x.requestId}"></div>
+                  Raw data<br />
+                  <pre>${JSON.stringify(x, null, 2)}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>`
       }, '')
     }
@@ -42,9 +50,7 @@ chrome.runtime.onMessage.addListener(
           let responseBody = resp.data
           try {
             responseBody = JSON.stringify(resp.data, null, 2)
-          } catch (error) {
-            // ignore
-          }
+          } catch (error) {}
           document.querySelector(`.resp-${data.requestId}`).innerHTML = `Response Header: ${resp.status}<br /><pre>${JSON.stringify(resp.headers, null, 2)}</pre><br />Response body<br /><pre>${responseBody}</pre>`
           document.querySelector(`.debug-${data.requestId}`).innerHTML = `Request Log<br /><pre>${JSON.stringify(resp, null, 2)}</pre><br />`
         }).catch(err => {
@@ -53,9 +59,7 @@ chrome.runtime.onMessage.addListener(
             let responseBody = response.data
             try {
               responseBody = JSON.stringify(response.data, null, 2)
-            } catch (error) {
-              // ignore
-            }
+            } catch (error) {}
             document.querySelector(`.resp-${data.requestId}`).innerHTML = `Response Header: ${response.status}<br /><pre>${JSON.stringify(response.headers, null, 2)}</pre><br />Response body<br /><pre>${responseBody}</pre>`
           } else {
             document.querySelector(`.resp-${data.requestId}`).innerHTML = `Error Log<br /><pre>${err}</pre>`
