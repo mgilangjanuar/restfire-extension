@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener(
   function(request) {
-    if (!request.requests.length) {
-      document.querySelector('.collapse').innerHTML = '<p style="color: #ffffff">No data</p>'
+    if (!request.requests || !request.requests.length) {
+      document.querySelector('.accordion').innerHTML = '<p style="color: #ffffff; margin: 20px;">No data</p>'
     } else {
       const methodFormatter = x => {
         if (x.method === 'DELETE') {
@@ -11,27 +11,42 @@ chrome.runtime.onMessage.addListener(
         }
         return x.method
       }
-      document.querySelector('.collapse').innerHTML = request.requests.reduce((res, x) => {
-        return `${res}<input type="radio" id="accordion-section${x.requestId}" aria-hidden="true" name="accordion">
-        <label for="accordion-section${x.requestId}" aria-hidden="true"><mark class="${x.method.toLowerCase()}">${methodFormatter(x)}</mark> ${x.url.substring(0, 43)}${x.url.length > 43 ? '...' : ''}</label>
-        <div>
-          cURL<br />
-          <pre>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</pre>
-          <p style="text-align: right;">
-            <button class="tertiary sendRequest small" --data-id="${x.requestId}">Send</button>
-          </p>
-          <div class="resp-${x.requestId}"></div>
-          <br />
-          <div class="row">
-            <div class="col-sm-12">
-              <div class="card fluid">
-                <div class="section dark">
-                  <mark>debug console</mark><br /><br />
-                  <div class="debug-${x.requestId}"></div>
-                  Raw data<br />
-                  <pre>${JSON.stringify(x, null, 2)}</pre>
-                </div>
-              </div>
+      const badge = x => {
+        if (x.method === 'GET') {
+          return 'badge bg-primary'
+        }
+        if (x.method === 'POST') {
+          return 'badge bg-success'
+        }
+        if (x.method === 'PATCH') {
+          return 'badge bg-warning text-dark'
+        }
+        if (x.method === 'DELETE') {
+          return 'badge bg-danger'
+        }
+        if (x.method === 'OPTIONS') {
+          return 'badge bg-secondary'
+        }
+        if (x.method === 'PUT') {
+          return 'badge bg-info text-dark'
+        }
+      }
+      document.querySelector('.accordion').innerHTML = request.requests.reduce((res, x) => {
+        return `${res}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading${x.requestId}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${x.requestId}" aria-expanded="false" aria-controls="collapse${x.requestId}">
+              <span class="${badge(x)}">${methodFormatter(x)}</span>&nbsp; ${x.url.substring(0, 40)}${x.url.length > 40 ? '...' : ''}
+            </button>
+          </h2>
+          <div id="collapse${x.requestId}" class="accordion-collapse collapse" aria-labelledby="heading${x.requestId}" data-bs-parent="#accordionRequests">
+            <div class="accordion-body">
+              <h5><span class="badge bg-secondary">cURL</span></h5>
+              <pre><code>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</code></pre>
+              <p style="text-align: right;">
+                <button class="btn btn-primary sendRequest" --data-id="${x.requestId}">Send</button>
+              </p>
+              <div class="resp-${x.requestId}"></div>
             </div>
           </div>
         </div>`
@@ -51,8 +66,19 @@ chrome.runtime.onMessage.addListener(
           try {
             responseBody = JSON.stringify(resp.data, null, 2)
           } catch (error) {}
-          document.querySelector(`.resp-${data.requestId}`).innerHTML = `Response Header: ${resp.status}<br /><pre>${JSON.stringify(resp.headers, null, 2)}</pre><br />Response body<br /><pre>${responseBody}</pre>`
-          document.querySelector(`.debug-${data.requestId}`).innerHTML = `Request Log<br /><pre>${JSON.stringify(resp, null, 2)}</pre><br />`
+          document.querySelector(`.resp-${data.requestId}`).innerHTML = `
+          <nav>
+            <div class="nav nav-pills" id="nav-tab-${data.requestId}" role="tablist">
+              <a class="nav-link active" id="nav-body-tab-${data.requestId}" data-bs-toggle="tab" href="#nav-body-${data.requestId}" role="tab" aria-controls="nav-body-${data.requestId}" aria-selected="true">Body: ${resp.status}</a>
+              <a class="nav-link" id="nav-headers-tab" data-bs-toggle="tab" href="#nav-headers-${data.requestId}" role="tab" aria-controls="nav-headers-${data.requestId}" aria-selected="false">Headers</a>
+              <a class="nav-link" id="nav-log-tab" data-bs-toggle="tab" href="#nav-log-${data.requestId}" role="tab" aria-controls="nav-log-${data.requestId}" aria-selected="false">Log</a>
+            </div>
+          </nav>
+          <div class="tab-content" id="nav-tabContent-${data.requestId}">
+            <div class="tab-pane fade show active" id="nav-body-${data.requestId}" role="tabpanel" aria-labelledby="nav-body-tab-${data.requestId}"><pre><code>${responseBody}</code></pre></div>
+            <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}"><pre><code>${JSON.stringify(resp.headers, null, 2)}</code></pre></div>
+            <div class="tab-pane fade" id="nav-log-${data.requestId}" role="tabpanel" aria-labelledby="nav-contact-tab-${data.requestId}"><pre><code>${JSON.stringify(resp, null, 2)}</code></pre></div>
+          </div>`
         }).catch(err => {
           const response = err.response
           if (response) {
@@ -60,11 +86,30 @@ chrome.runtime.onMessage.addListener(
             try {
               responseBody = JSON.stringify(response.data, null, 2)
             } catch (error) {}
-            document.querySelector(`.resp-${data.requestId}`).innerHTML = `Response Header: ${response.status}<br /><pre>${JSON.stringify(response.headers, null, 2)}</pre><br />Response body<br /><pre>${responseBody}</pre>`
+            document.querySelector(`.resp-${data.requestId}`).innerHTML = `
+            <nav>
+              <div class="nav nav-pills" id="nav-tab-${data.requestId}" role="tablist">
+                <a class="nav-link active" id="nav-body-tab-${data.requestId}" data-bs-toggle="tab" href="#nav-body-${data.requestId}" role="tab" aria-controls="nav-body-${data.requestId}" aria-selected="true">Body: ${response.status}</a>
+                <a class="nav-link" id="nav-headers-tab" data-bs-toggle="tab" href="#nav-headers-${data.requestId}" role="tab" aria-controls="nav-headers-${data.requestId}" aria-selected="false">Headers</a>
+                <a class="nav-link" id="nav-log-tab" data-bs-toggle="tab" href="#nav-log-${data.requestId}" role="tab" aria-controls="nav-log-${data.requestId}" aria-selected="false">Log</a>
+              </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent-${data.requestId}">
+              <div class="tab-pane fade show active" id="nav-body-${data.requestId}" role="tabpanel" aria-labelledby="nav-body-tab-${data.requestId}"><pre><code>${responseBody}</code></pre></div>
+              <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}"><pre><code>${JSON.stringify(response.headers, null, 2)}</code></pre></div>
+              <div class="tab-pane fade" id="nav-log-${data.requestId}" role="tabpanel" aria-labelledby="nav-contact-tab-${data.requestId}"><pre><code>${JSON.stringify(response, null, 2)}</code></pre></div>
+            </div>`
           } else {
-            document.querySelector(`.resp-${data.requestId}`).innerHTML = `Error Log<br /><pre>${err}</pre>`
+            document.querySelector(`.resp-${data.requestId}`).innerHTML = `
+            <nav>
+              <div class="nav nav-pills" id="nav-tab-${data.requestId}" role="tablist">
+                <a class="nav-link active" id="nav-body-tab-${data.requestId}" data-bs-toggle="tab" href="#nav-body-${data.requestId}" role="tab" aria-controls="nav-body-${data.requestId}" aria-selected="true">Error log</a>
+              </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent-${data.requestId}">
+              <div class="tab-pane fade show active" id="nav-body-${data.requestId}" role="tabpanel" aria-labelledby="nav-body-tab-${data.requestId}"><pre><code>${err}</code></pre></div>
+            </div>`
           }
-          document.querySelector(`.debug-${data.requestId}`).innerHTML = `Request Log<br /><pre>${JSON.stringify(err, null, 2)}</pre><br />`
         })
       })
     }
