@@ -8,7 +8,6 @@ chrome.browserAction.onClicked.addListener(tab => {
 
 chrome.tabs.onRemoved.addListener(id => {
   data = data.filter(d => d.tabId !== id)
-  console.log('Data Length:', data.length)
 })
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
@@ -20,7 +19,7 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
       raw: new TextDecoder('utf-8').decode(new Uint8Array(details.requestBody.raw[0].bytes))
     } : details.requestBody && details.requestBody.formData ? {
       formData: Object.keys(details.requestBody.formData).map(key => ({ name: [key], value: details.requestBody.formData[key][0] }))
-    } : null
+    } : details.requestBody
   }
   if (!request) {
     data = [{

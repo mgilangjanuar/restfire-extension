@@ -32,7 +32,7 @@ chrome.runtime.onMessage.addListener(
         }
       }
       document.querySelector('.accordion').innerHTML = request.requests.reduce((res, x) => {
-        console.log('KUASNAS', x)
+        console.log('Incoming Data:', x)
         return `${res}
         <div class="accordion-item">
           <h2 class="accordion-header" id="heading${x.requestId}">
