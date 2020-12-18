@@ -42,6 +42,12 @@ chrome.runtime.onMessage.addListener(
           </h2>
           <div id="collapse${x.requestId}" class="accordion-collapse collapse" aria-labelledby="heading${x.requestId}" data-bs-parent="#accordionRequests">
             <div class="accordion-body">
+
+              ${x.method === 'PATCH' ? `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                There is an issue on PATCH method: <a target="_blank" rel="noopener noreferrer" href="https://github.com/mgilangjanuar/restfire-extension/issues/1">#1</a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>` : ''}
+
               <nav>
                 <div class="nav nav-pills" id="nav-tab-${x.requestId}" role="tablist">
                   <a class="nav-link active" id="nav-curl-tab-req-${x.requestId}" data-bs-toggle="tab" href="#nav-curl-req-${x.requestId}" role="tab" aria-controls="nav-curl-req-${x.requestId}" aria-selected="true">cURL</a>
