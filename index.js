@@ -13,36 +13,58 @@ chrome.runtime.onMessage.addListener(
       }
       const badge = x => {
         if (x.method === 'GET') {
-          return 'badge bg-primary'
+          return 'bg-primary'
         }
         if (x.method === 'POST') {
-          return 'badge bg-success'
+          return 'bg-success'
         }
         if (x.method === 'PATCH') {
-          return 'badge bg-warning text-dark'
+          return 'bg-warning text-dark'
         }
         if (x.method === 'DELETE') {
-          return 'badge bg-danger'
+          return 'bg-danger'
         }
         if (x.method === 'OPTIONS') {
-          return 'badge bg-secondary'
+          return 'bg-secondary'
         }
         if (x.method === 'PUT') {
-          return 'badge bg-info text-dark'
+          return 'bg-info text-dark'
         }
       }
       document.querySelector('.accordion').innerHTML = request.requests.reduce((res, x) => {
+        console.log('KUASNAS', x)
         return `${res}
         <div class="accordion-item">
           <h2 class="accordion-header" id="heading${x.requestId}">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${x.requestId}" aria-expanded="false" aria-controls="collapse${x.requestId}">
-              <span class="${badge(x)}">${methodFormatter(x)}</span>&nbsp; ${x.url.substring(0, 40)}${x.url.length > 40 ? '...' : ''}
+              <span class="badge ${badge(x)}">${methodFormatter(x)}</span>&nbsp; ${x.url.substring(0, 40)}${x.url.length > 40 ? '...' : ''}
             </button>
           </h2>
           <div id="collapse${x.requestId}" class="accordion-collapse collapse" aria-labelledby="heading${x.requestId}" data-bs-parent="#accordionRequests">
             <div class="accordion-body">
-              <h5><span class="badge bg-secondary">cURL</span></h5>
-              <pre><code>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</code></pre>
+              <nav>
+                <div class="nav nav-pills" id="nav-tab-${x.requestId}" role="tablist">
+                  <a class="nav-link active" id="nav-curl-tab-req-${x.requestId}" data-bs-toggle="tab" href="#nav-curl-req-${x.requestId}" role="tab" aria-controls="nav-curl-req-${x.requestId}" aria-selected="true">cURL</a>
+                  <a class="nav-link" id="nav-headers-tab-req-${x.requestId}" data-bs-toggle="tab" href="#nav-headers-req-${x.requestId}" role="tab" aria-controls="nav-headers-req-${x.requestId}" aria-selected="false">Headers</a>
+                </div>
+              </nav>
+              <div class="tab-content" id="nav-tabContent-${x.requestId}">
+                <div class="tab-pane fade show active" id="nav-curl-req-${x.requestId}" role="tabpanel" aria-labelledby="nav-curl-tab-req-${x.requestId}">
+                  <pre><code>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</code></pre>
+                </div>
+                <div class="tab-pane fade" id="nav-headers-req-${x.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-req-${x.requestId}">
+                  <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                      <tbody>
+                        ${x.requestHeaders?.map(header => `<tr>
+                          <th class="text-nowrap" scope="row">${header.name}</th>
+                          <td class="text-nowrap">${header.value}</td>
+                        </tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
               <p style="text-align: right;">
                 <button class="btn btn-primary sendRequest" --data-id="${x.requestId}">Send</button>
               </p>
@@ -76,7 +98,18 @@ chrome.runtime.onMessage.addListener(
           </nav>
           <div class="tab-content" id="nav-tabContent-${data.requestId}">
             <div class="tab-pane fade show active" id="nav-body-${data.requestId}" role="tabpanel" aria-labelledby="nav-body-tab-${data.requestId}"><pre><code>${responseBody}</code></pre></div>
-            <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}"><pre><code>${JSON.stringify(resp.headers, null, 2)}</code></pre></div>
+            <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}">
+              <div class="table-responsive">
+                <table class="table table-dark table-striped">
+                  <tbody>
+                    ${Object.keys(resp.headers)?.map(key => `<tr>
+                      <th class="text-nowrap" scope="row">${key}</th>
+                      <td class="text-nowrap">${resp.headers[key]}</td>
+                    </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div class="tab-pane fade" id="nav-log-${data.requestId}" role="tabpanel" aria-labelledby="nav-contact-tab-${data.requestId}"><pre><code>${JSON.stringify(resp, null, 2)}</code></pre></div>
           </div>`
         }).catch(err => {
@@ -96,7 +129,18 @@ chrome.runtime.onMessage.addListener(
             </nav>
             <div class="tab-content" id="nav-tabContent-${data.requestId}">
               <div class="tab-pane fade show active" id="nav-body-${data.requestId}" role="tabpanel" aria-labelledby="nav-body-tab-${data.requestId}"><pre><code>${responseBody}</code></pre></div>
-              <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}"><pre><code>${JSON.stringify(response.headers, null, 2)}</code></pre></div>
+              <div class="tab-pane fade" id="nav-headers-${data.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-${data.requestId}">
+                <div class="table-responsive">
+                  <table class="table table-dark table-striped">
+                    <tbody>
+                      ${Object.keys(response.headers)?.map(key => `<tr>
+                        <th class="text-nowrap" scope="row">${key}</th>
+                        <td class="text-nowrap">${response.headers[key]}</td>
+                      </tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
               <div class="tab-pane fade" id="nav-log-${data.requestId}" role="tabpanel" aria-labelledby="nav-contact-tab-${data.requestId}"><pre><code>${JSON.stringify(response, null, 2)}</code></pre></div>
             </div>`
           } else {

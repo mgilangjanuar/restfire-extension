@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
   <style>
     body {
-      background-color: #1a1a2e;
+      background-color: #121212;
       color: #ffffff;
       min-height: 100vh;
       border-left: #e94560 solid 5px;
@@ -20,9 +20,6 @@
     }
     .close {
       z-index: 1211;
-      position: absolute;
-      right: 20px;
-      top: 10px;
     }
     .close::before {
       display: block;
@@ -34,9 +31,6 @@
       line-height: 1;
       text-align: center;
     }
-    .close:hover {
-      cursor: pointer;
-    }
     .reload {
       margin: 10px 20px;
     }
@@ -44,13 +38,18 @@
       border: 1px solid rgba(255,255,255,.125);
       padding: 10px;
     }
+    .tab-content > .tab-pane {
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
-  <span class="close"></span>
+  <button class="btn close float-end"></button>
   <button class="btn btn-sm reload btn-warning">reload</button>
   <br />
-  <div class="accordion" id="accordionRequests"></div>
+  <div class="accordion" id="accordionRequests">
+    <p style="color: #ffffff; margin: 20px;">No data</p>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="index.js"></script>
