@@ -2,6 +2,8 @@
 
 A chrome extension network panel extended browser with cURL command for debugging your APIs.
 
+![img](./preview.png)
+
 ## Installation
 
  0. Clone or download and extract this repository
