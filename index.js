@@ -1,3 +1,5 @@
+new ClipboardJS('.btn-copy')
+
 chrome.runtime.onMessage.addListener(
   function(request) {
     if (!request.requests || !request.requests.length) {
@@ -32,7 +34,7 @@ chrome.runtime.onMessage.addListener(
         }
       }
       document.querySelector('.accordion').innerHTML = request.requests.reduce((res, x) => {
-        console.log('Incoming Data:', x)
+        const curl = `curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}`
         return `${res}
         <div class="accordion-item">
           <h2 class="accordion-header" id="heading${x.requestId}">
@@ -56,7 +58,7 @@ chrome.runtime.onMessage.addListener(
               </nav>
               <div class="tab-content" id="nav-tabContent-${x.requestId}">
                 <div class="tab-pane fade show active" id="nav-curl-req-${x.requestId}" role="tabpanel" aria-labelledby="nav-curl-tab-req-${x.requestId}">
-                  <pre><code>curl --location --request ${x.method} '${x.url}'${x.requestHeaders?.length ? ` \\\n${x.requestHeaders.map(header => `--header '${header.name.replace(/\'/gi, '\'\\\'\'')}: ${header.value.replace(/\'/gi, '\'\\\'\'')}'`).join(' \\\n')}` : ''}${x.requestBody && x.requestBody.raw ? ` \\\n--data-raw '${x.requestBody.raw.replace(/\'/gi, '\'\\\'\'')}'` : ''}${x.requestBody && x.requestBody.formData ? ` \\\n${x.requestBody.formData.map(form => `--form '${form.name}="${form.value.replace(/\'/gi, '\'\\\'\'').replace(/\"/gi, '\\\"')}"'`).join(' \\\n')}` : ''}</code></pre>
+                  <pre><code id="curl-${x.requestId}">${curl}</code></pre>
                 </div>
                 <div class="tab-pane fade" id="nav-headers-req-${x.requestId}" role="tabpanel" aria-labelledby="nav-headers-tab-req-${x.requestId}">
                   <div class="table-responsive">
@@ -72,6 +74,9 @@ chrome.runtime.onMessage.addListener(
                 </div>
               </div>
               <p style="text-align: right;">
+                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Copied!">
+                  <button class="btn btn-copy btn-dark" data-clipboard-text="${curl}">Copy</button>
+                </span>
                 <button class="btn btn-primary sendRequest" --data-id="${x.requestId}">Send</button>
               </p>
               <div class="resp-${x.requestId}"></div>
@@ -80,6 +85,19 @@ chrome.runtime.onMessage.addListener(
         </div>`
       }, '')
     }
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl, { trigger: 'manual' })
+    })
+    tooltipTriggerList.map(function (tooltipEl) {
+      tooltipEl.addEventListener('click', () => {
+        const tooltip = bootstrap.Tooltip.getInstance(tooltipEl)
+        tooltip.show()
+        setTimeout(() => {
+          tooltip.hide()
+        }, 700)
+      })
+    })
     const buttons = document.querySelectorAll('.sendRequest')
     for (let i = 0; i < buttons.length; i++) {
       buttons[i].addEventListener('click', () => {
