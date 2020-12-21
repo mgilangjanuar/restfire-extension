@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener(
               </div>
               <p style="text-align: right;">
                 <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Copied!">
-                  <button class="btn btn-copy btn-dark" data-clipboard-text="${curl}">Copy</button>
+                  <button class="btn btn-copy btn-dark" data-clipboard-target="#curl-${x.requestId}">Copy</button>
                 </span>
                 <button class="btn btn-primary sendRequest" --data-id="${x.requestId}">Send</button>
               </p>
