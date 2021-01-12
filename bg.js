@@ -1,4 +1,5 @@
 let data = []
+let tabIds = []
 
 chrome.browserAction.onClicked.addListener(tab => {
   chrome.tabs.executeScript(tab.id, {
@@ -8,6 +9,12 @@ chrome.browserAction.onClicked.addListener(tab => {
 
 chrome.tabs.onRemoved.addListener(id => {
   data = data.filter(d => d.tabId !== id)
+})
+
+chrome.tabs.onUpdated.addListener(id => {
+  chrome.tabs.query({ active: true, currentWindow: true }, () => {
+    chrome.tabs.sendMessage(id, { tabIdExists: tabIds.indexOf(id) >= 0 })
+  })
 })
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
@@ -21,15 +28,17 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
       formData: Object.keys(details.requestBody.formData).map(key => ({ name: [key], value: details.requestBody.formData[key][0] }))
     } : details.requestBody
   }
-  if (!request) {
-    data = [{
-      id: details.requestId,
-      ...beforeRequest
-    }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
-  } else {
-    data[data.indexOf(request)] = {
-      ...data[data.indexOf(request)],
-      ...beforeRequest
+  if (tabIds.indexOf(details.tabId) >= 0) {
+    if (!request) {
+      data = [{
+        id: details.requestId,
+        ...beforeRequest
+      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+    } else {
+      data[data.indexOf(request)] = {
+        ...data[data.indexOf(request)],
+        ...beforeRequest
+      }
     }
   }
 }, { urls: ['<all_urls>'] }, ['requestBody'])
@@ -37,15 +46,17 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
 chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
   if (details.type !== 'xmlhttprequest' || !/^http/.test(details.initiator)) return
   const request = data.find(d => d.id === details.requestId)
-  if (!request) {
-    data = [{
-      id: details.requestId,
-      ...details
-    }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
-  } else {
-    data[data.indexOf(request)] = {
-      ...data[data.indexOf(request)],
-      ...details
+  if (tabIds.indexOf(details.tabId) >= 0) {
+    if (!request) {
+      data = [{
+        id: details.requestId,
+        ...details
+      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+    } else {
+      data[data.indexOf(request)] = {
+        ...data[data.indexOf(request)],
+        ...details
+      }
     }
   }
 }, { urls: ['<all_urls>'] }, ['requestHeaders', 'extraHeaders'])
@@ -53,15 +64,17 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 chrome.webRequest.onCompleted.addListener(function (details) {
   if (details.type !== 'xmlhttprequest' || !/^http/.test(details.initiator)) return
   const request = data.find(d => d.id === details.requestId)
-  if (!request) {
-    data = [{
-      id: details.requestId,
-      ...details
-    }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
-  } else {
-    data[data.indexOf(request)] = {
-      ...data[data.indexOf(request)],
-      ...details
+  if (tabIds.indexOf(details.tabId) >= 0) {
+    if (!request) {
+      data = [{
+        id: details.requestId,
+        ...details
+      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+    } else {
+      data[data.indexOf(request)] = {
+        ...data[data.indexOf(request)],
+        ...details
+      }
     }
   }
   chrome.tabs.query({ active: true, currentWindow: true }, () => {
@@ -75,6 +88,17 @@ chrome.runtime.onMessage.addListener(
       data = data.filter(d => d.tabId !== sender.tab.id)
       chrome.tabs.query({ active: true, currentWindow: true }, () => {
         chrome.tabs.sendMessage(sender.tab.id, { requests: data.filter(d => d.tabId === sender.tab.id) })
+      })
+    }
+    console.log(request, request.event === 'start')
+    if (request.event === 'start') {
+      if (tabIds.indexOf(sender.tab.id) >= 0) {
+        tabIds = tabIds.filter(t => t !== sender.tab.id)
+      } else {
+        tabIds = [...tabIds, sender.tab.id]
+      }
+      chrome.tabs.query({ active: true, currentWindow: true }, () => {
+        chrome.tabs.sendMessage(sender.tab.id, { tabIdExists: tabIds.indexOf(sender.tab.id) >= 0 })
       })
     }
   }
