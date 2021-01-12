@@ -6,7 +6,6 @@ chrome.runtime.onMessage.addListener(
       if (request.tabIdExists === undefined) {
         document.querySelector('.accordion').innerHTML = '<p style="color: #ffffff; margin: 20px;">No data</p>'
       } else {
-        console.log('OIASNAS', request.tabIdExists)
         if (request.tabIdExists) {
           document.querySelector('.start').innerHTML = 'stop'
           document.querySelector('.start').classList.remove('btn-primary')
@@ -199,7 +198,4 @@ chrome.runtime.onMessage.addListener(
 
 document.querySelector('.close').addEventListener('click', () => parent.postMessage({ event: 'close' }, '*'))
 document.querySelector('.reload').addEventListener('click', () => chrome.runtime.sendMessage({ event: 'reload' }))
-document.querySelector('.start').addEventListener('click', () => {
-  console.log('s')
-  chrome.runtime.sendMessage({ event: 'start' })
-})
+document.querySelector('.start').addEventListener('click', () => chrome.runtime.sendMessage({ event: 'start' }))

@@ -30,10 +30,14 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
   }
   if (tabIds.indexOf(details.tabId) >= 0) {
     if (!request) {
-      data = [{
+      // data = [{
+      //   id: details.requestId,
+      //   ...beforeRequest
+      // }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      data = [...data, {
         id: details.requestId,
         ...beforeRequest
-      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      }]
     } else {
       data[data.indexOf(request)] = {
         ...data[data.indexOf(request)],
@@ -48,10 +52,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
   const request = data.find(d => d.id === details.requestId)
   if (tabIds.indexOf(details.tabId) >= 0) {
     if (!request) {
-      data = [{
+      // data = [{
+      //   id: details.requestId,
+      //   ...details
+      // }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      data = [...data, {
         id: details.requestId,
         ...details
-      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      }]
     } else {
       data[data.indexOf(request)] = {
         ...data[data.indexOf(request)],
@@ -66,10 +74,14 @@ chrome.webRequest.onCompleted.addListener(function (details) {
   const request = data.find(d => d.id === details.requestId)
   if (tabIds.indexOf(details.tabId) >= 0) {
     if (!request) {
-      data = [{
+      // data = [{
+      //   id: details.requestId,
+      //   ...details
+      // }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      data = [...data, {
         id: details.requestId,
         ...details
-      }, ...data].filter((req, i) => req.tabId !== details.tabId || req.tabId === details.tabId && i < 50)
+      }]
     } else {
       data[data.indexOf(request)] = {
         ...data[data.indexOf(request)],
